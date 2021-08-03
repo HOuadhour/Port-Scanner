@@ -1,5 +1,4 @@
 import socket
-import subprocess
 import re
 from common_ports import ports_and_services
 
@@ -13,31 +12,21 @@ def returnError(target):
 
 def checkTarget(target):
   try:
-    out = subprocess.check_output(f"ping -c1 {target}", timeout=2, shell=True).decode()
-    if "1 received" in out:
-      out = re.findall(r"from (.+):", out)
-      return out[0].split(" ")
-    else:
-      return returnError(target)
+    ip = socket.getaddrinfo(target, None)[1][4][0]
+    return {
+        "name": ip,
+        "ip": ip
+    }
   except Exception as error:
     print(error)
     return returnError(target)
 
 
-def parseTarget(target):
-  host = {}
-  if len(target) == 1:
-    host["name"] = target[0]
-    host["ip"] = target[0]
-  elif len(target) == 2:
-    host["name"] = target[0]
-    host["ip"] = target[1][1:-1]
-
-  if host["name"] == host["ip"]:
-    try:
-      host["name"] = socket.gethostbyaddr(host["ip"])[0]
-    except:
-      pass
+def parseTarget(host):
+  try:
+    host["name"] = socket.gethostbyaddr(host["ip"])[0]
+  except:
+    pass
 
   return host
 
